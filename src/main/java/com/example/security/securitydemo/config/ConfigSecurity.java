@@ -18,7 +18,7 @@ public class ConfigSecurity {
         http
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/myAccount", "/myBalance", "/myLoans", "/myCards").authenticated()
-                        .requestMatchers("/notices", "/contacts", "/register").permitAll()
+                        .requestMatchers("/notices", "/contacts", "/register", "/users").permitAll()
                 )
                 .formLogin(withDefaults())
                 .httpBasic(withDefaults())

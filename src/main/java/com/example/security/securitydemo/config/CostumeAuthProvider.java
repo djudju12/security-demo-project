@@ -1,5 +1,6 @@
 package com.example.security.securitydemo.config;
 
+import com.example.security.securitydemo.model.Authority;
 import com.example.security.securitydemo.model.Costumer;
 import com.example.security.securitydemo.repository.CostumerRepository;
 import org.hibernate.annotations.Comment;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class CostumeAuthProvider implements AuthenticationProvider {
@@ -40,12 +42,17 @@ public class CostumeAuthProvider implements AuthenticationProvider {
             throw new BadCredentialsException("No user registered with this details!");
 
         if (passwordEncoder.matches(pwd, costumers.get(0).getPwd())) {
-            List<GrantedAuthority> authorities = new ArrayList<>();
-            authorities.add(new SimpleGrantedAuthority(costumers.get(0).getRole()));
+            List<GrantedAuthority> authorities = getAuthorities(costumers.get(0).getRole());
             return new UsernamePasswordAuthenticationToken(username, pwd, authorities);
         } else {
             throw new BadCredentialsException("invalid password!");
         }
+    }
+
+    private List<GrantedAuthority> getAuthorities(List<Authority> authorities) {
+        return authorities.stream()
+                .map(auth -> (GrantedAuthority) new SimpleGrantedAuthority(auth.getName()))
+                .toList();
     }
 
     @Override

@@ -14,7 +14,9 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -23,41 +25,42 @@ public class ConfigSecurity {
 
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-        CsrfTokenRequestAttributeHandler requestAttributeHandler = new CsrfTokenRequestAttributeHandler();
-        requestAttributeHandler.setCsrfRequestAttributeName("_csrf");
+//        CsrfTokenRequestAttributeHandler requestAttributeHandler = new CsrfTokenRequestAttributeHandler();
+//        requestAttributeHandler.setCsrfRequestAttributeName("_csrf");
 
         http
-                .securityContext(context -> context
-                        .requireExplicitSave(false))
 
-                .sessionManagement(session ->   session
-                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .cors().disable()
+                .csrf().disable()
+//                .cors(cors -> cors
+//                        .configurationSource(request -> {
+//                            CorsConfiguration config = new CorsConfiguration();
+//                            config.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
+//                            config.setAllowedMethods(Collections.singletonList("*"));
+//                            config.setAllowCredentials(true);
+//                            config.setAllowedHeaders(Collections.singletonList("*"));
+//                            config.setExposedHeaders(List.of(SecurityConstants.JWT_HEADER));
+//                            config.setMaxAge(3600L);
+//                            return config;
+//                        }))
 
-                .cors(cors -> cors
-                        .configurationSource(new CorsConfigurationSource() {
-                            @Override
-                            public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
-                                CorsConfiguration config = new CorsConfiguration();
-                                config.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
-                                config.setAllowedMethods(Collections.singletonList("*"));
-                                config.setAllowCredentials(true);
-                                config.setAllowedHeaders(Collections.singletonList("*"));
-                                config.setMaxAge(3600L);
-                                return config;
-                            }
-                        }))
-
-                .csrf(csrf -> csrf
-                        .csrfTokenRequestHandler(requestAttributeHandler)
-                            .ignoringRequestMatchers("/contact", "/register")
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
-                .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
+//                .csrf(csrf -> csrf
+//                        .csrfTokenRequestHandler(requestAttributeHandler)
+//                            .ignoringRequestMatchers("/contact", "/register")
+//                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
 
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/myAccount", "/myBalance", "/myLoans", "/myCards").authenticated()
                         .requestMatchers("/notices", "/contacts", "/register", "/users").permitAll()
 //                            .hasAnyAuthority("VIEWCONTACTS")
                 )
+
+//                .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
+                .addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class)
+                .addFilterBefore(new JWTTokenValidationFilter(), BasicAuthenticationFilter.class)
+
                 .formLogin(withDefaults())
                 .httpBasic(withDefaults());
 

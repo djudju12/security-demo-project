@@ -3,6 +3,7 @@ package com.example.security.securitydemo.controller;
 import com.example.security.securitydemo.model.Costumer;
 import com.example.security.securitydemo.repository.CostumerRepository;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -18,12 +19,13 @@ public class AccountController {
 
 
     @GetMapping("/myAccount")
-    public String getAccountDetails() {
-        return "my account";
+    public Costumer getAccountDetails(@RequestParam String email) {
+        List<Costumer> costumers;
+        costumers = repository.findByEmail(email);
+        if (costumers != null && !costumers.isEmpty()) {
+            return costumers.get(0);
+        }
+        return null;
     }
 
-    @GetMapping("/users")
-    public List<Costumer> findAllCostumers() {
-        return repository.findAll();
-    }
 }
